@@ -1,10 +1,10 @@
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TOKEN_KEY = 'JWT_TOKEN';
 
 export const saveToken = async (token: string): Promise<void> => {
   try {
-    await SecureStore.setItemAsync(TOKEN_KEY, token);
+    await AsyncStorage.setItem(TOKEN_KEY, token);
   } catch (error) {
     console.error('Error saving token', error);
   }
@@ -12,7 +12,7 @@ export const saveToken = async (token: string): Promise<void> => {
 
 export const getToken = async (): Promise<string | null> => {
   try {
-    return await SecureStore.getItemAsync(TOKEN_KEY);
+    return await AsyncStorage.getItem(TOKEN_KEY);
   } catch (error) {
     console.error('Error getting token', error);
     return null;
@@ -21,7 +21,7 @@ export const getToken = async (): Promise<string | null> => {
 
 export const deleteToken = async (): Promise<void> => {
   try {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await AsyncStorage.removeItem(TOKEN_KEY);
   } catch (error) {
     console.error('Error deleting token', error);
   }
