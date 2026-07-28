@@ -25,11 +25,11 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-slate-900"
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerClassName="flex-grow justify-center p-6">
+        <ScrollView contentContainerClassName="flex-grow justify-center p-6" keyboardShouldPersistTaps="handled">
       <View className="items-center mb-10">
         <Text className="text-4xl font-bold text-white mb-2 tracking-tight">Welcome Back</Text>
         <Text className="text-slate-400 text-base">Sign in to continue your journey</Text>
@@ -59,6 +59,11 @@ export default function LoginScreen() {
             onChangeText={setPassword}
             secureTextEntry
           />
+        </View>
+        <View className="flex-row justify-end mt-2">
+          <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
+            <Text className="text-indigo-400 font-medium text-sm">Forgot Password?</Text>
+          </TouchableOpacity>
         </View>
       </View>
 

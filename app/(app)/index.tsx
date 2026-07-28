@@ -18,7 +18,7 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 items-center justify-center bg-slate-900 p-6">
       <Text className="text-3xl font-bold text-white mb-2">
-        Hello, {user?.name || 'Student'}!
+        Hello, {user?.firstName ? `${user.firstName} ${user.lastName}` : 'Student'}!
       </Text>
       <Text className="text-slate-400 mb-8 text-center">
         Welcome to your AI Study Assistant

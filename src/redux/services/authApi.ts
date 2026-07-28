@@ -5,24 +5,20 @@ import { saveToken, deleteToken } from '../../services/storage';
 export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
-      async queryFn(credentials) {
-        // Mock network delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return {
-          data: {
-            user: { id: '1', name: 'Student', email: credentials.email },
-            token: 'mock-jwt-token-123',
-          },
-        };
-      },
+      query: (credentials) => ({
+        url: '/auth/login',
+        method: 'POST',
+        body: credentials,
+      }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          await saveToken(data.token);
+          const token = data.access_token || data.token;
+          await saveToken(token);
           dispatch(
             setCredentials({
-              user: data.user,
-              token: data.token,
+              user: data.user || { id: 'unknown', name: 'Student', email: arg.email },
+              token: token,
             })
           );
         } catch (err) {
@@ -31,48 +27,57 @@ export const authApi = apiSlice.injectEndpoints({
       },
     }),
     register: builder.mutation({
-      async queryFn(userData) {
-        // Mock network delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return {
-          data: {
-            user: { id: '1', name: userData.name || 'New Student', email: userData.email },
-            token: 'mock-jwt-token-123',
-          },
-        };
-      },
-      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+      query: (userData) => ({
+        url: '/auth/register',
+        method: 'POST',
+        body: userData,
+      }),
+      async onQueryStarted(arg, { queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled;
-          await saveToken(data.token);
-          dispatch(
-            setCredentials({
-              user: data.user,
-              token: data.token,
-            })
-          );
+          await queryFulfilled;
+          // Registration complete. Do not automatically log in.
         } catch (err) {
           // Handle error if needed
         }
       },
     }),
     logout: builder.mutation({
-      async queryFn() {
-        // Mock network delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        return { data: { success: true } };
-      },
+      query: () => ({
+        url: '/auth/logout',
+        method: 'POST',
+      }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
+        } catch (err) {
+          // Handle error if needed (e.g. 401 because token was already invalid)
+        } finally {
           await deleteToken();
           dispatch(logout());
-        } catch (err) {
-          // Handle error if needed
         }
       },
+    }),
+    forgotPassword: builder.mutation({
+      query: (body) => ({
+        url: '/auth/forgot-password',
+        method: 'POST',
+        body,
+      }),
+    }),
+    resetPassword: builder.mutation({
+      query: (body) => ({
+        url: '/auth/reset-password',
+        method: 'POST',
+        body,
+      }),
     }),
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useLogoutMutation } = authApi;
+export const { 
+  useLoginMutation, 
+  useRegisterMutation, 
+  useLogoutMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation
+} = authApi;

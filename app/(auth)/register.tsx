@@ -5,7 +5,8 @@ import { useRegisterMutation } from '../../src/redux/services/authApi';
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -13,7 +14,7 @@ export default function RegisterScreen() {
   const [register, { isLoading }] = useRegisterMutation();
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -23,36 +24,51 @@ export default function RegisterScreen() {
     }
 
     try {
-      await register({ name, email, password }).unwrap();
-      // Routing logic handled by root layout
+      await register({ firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim(), password }).unwrap();
+      Alert.alert('Success', 'Account created successfully! Please sign in.');
+      router.replace('/(auth)/login');
     } catch (err: any) {
-      Alert.alert('Registration Failed', err?.data?.message || 'Something went wrong');
+      const errorMsg = err?.data?.message || err?.error || JSON.stringify(err);
+      Alert.alert('Registration Failed', typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
     }
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-slate-900"
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerClassName="flex-grow justify-center p-6">
+        <ScrollView contentContainerClassName="flex-grow justify-center p-6" keyboardShouldPersistTaps="handled">
       <View className="items-center mb-10">
         <Text className="text-4xl font-bold text-white mb-2 tracking-tight">Create Account</Text>
         <Text className="text-slate-400 text-base">Join us and start studying smarter</Text>
       </View>
 
       <View className="space-y-4 mb-6">
-        <View>
-          <Text className="text-slate-300 font-medium mb-1.5 ml-1">Full Name</Text>
-          <TextInput
-            className="w-full bg-slate-800 text-white rounded-xl px-4 py-3.5 border border-slate-700 focus:border-indigo-500 transition-colors"
-            placeholder="John Doe"
-            placeholderTextColor="#94a3b8"
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="words"
-          />
+        <View className="flex-row justify-between">
+          <View className="flex-1 mr-2">
+            <Text className="text-slate-300 font-medium mb-1.5 ml-1">First Name</Text>
+            <TextInput
+              className="w-full bg-slate-800 text-white rounded-xl px-4 py-3.5 border border-slate-700 focus:border-indigo-500 transition-colors"
+              placeholder="Melon"
+              placeholderTextColor="#94a3b8"
+              value={firstName}
+              onChangeText={setFirstName}
+              autoCapitalize="words"
+            />
+          </View>
+          <View className="flex-1 ml-2">
+            <Text className="text-slate-300 font-medium mb-1.5 ml-1">Last Name</Text>
+            <TextInput
+              className="w-full bg-slate-800 text-white rounded-xl px-4 py-3.5 border border-slate-700 focus:border-indigo-500 transition-colors"
+              placeholder="Ali"
+              placeholderTextColor="#94a3b8"
+              value={lastName}
+              onChangeText={setLastName}
+              autoCapitalize="words"
+            />
+          </View>
         </View>
 
         <View>
