@@ -1,34 +1,34 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForgotPasswordMutation } from '../../src/redux/services/authApi';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const schema = z.object({
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
+});
+
+type ForgotPasswordFormData = z.infer<typeof schema>;
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
-  const handleSendLink = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
-      return;
-    }
-    
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
+  const { control, handleSubmit, formState: { errors } } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: '' }
+  });
 
+  const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      await forgotPassword({ email }).unwrap();
+      await forgotPassword({ email: data.email }).unwrap();
       Alert.alert('Success', 'Reset code sent to your email');
       // Pass the email as a route param so the next screen can use it
       router.push({
         pathname: '/(auth)/reset-password',
-        params: { email }
+        params: { email: data.email }
       });
     } catch (err: any) {
       Alert.alert('Failed', err?.data?.message || 'Something went wrong while sending the reset link');
@@ -50,21 +50,31 @@ export default function ForgotPasswordScreen() {
           <View className="space-y-4 mb-6">
             <View>
               <Text className="text-slate-300 font-medium mb-1.5 ml-1">Email Address</Text>
-              <TextInput
-                className="w-full bg-slate-800 text-white rounded-xl px-4 py-3.5 border border-slate-700 focus:border-indigo-500 focus:bg-slate-800/80 transition-colors"
-                placeholder="Enter your email"
-                placeholderTextColor="#94a3b8"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    className={`w-full bg-slate-800 text-white rounded-xl px-4 py-3.5 border transition-colors ${errors.email ? 'border-red-500' : 'border-slate-700 focus:border-indigo-500 focus:bg-slate-800/80'}`}
+                    placeholder="Enter your email"
+                    placeholderTextColor="#94a3b8"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                )}
               />
+              {errors.email && (
+                <Text className="text-red-500 text-sm mt-1.5 ml-1">{errors.email.message}</Text>
+              )}
             </View>
           </View>
 
           <TouchableOpacity
             className={`w-full bg-indigo-600 rounded-xl py-4 flex-row justify-center items-center ${isLoading ? 'opacity-70' : 'active:bg-indigo-700'}`}
-            onPress={handleSendLink}
+            onPress={handleSubmit(onSubmit)}
             disabled={isLoading}
           >
             {isLoading ? (
