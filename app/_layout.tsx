@@ -20,6 +20,7 @@ function RootNavigation() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const hasSelectedCategory = useAppSelector((state) => state.preferences.hasSelectedCategory);
   const [isReady, setIsReady] = useState(false);
   const rootNavigationState = useRootNavigationState();
 
@@ -55,15 +56,19 @@ function RootNavigation() {
     if (!isReady || !rootNavigationState?.key) return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const inOnboardingGroup = (segments[0] as string) === "(onboarding)";
 
     if (!isAuthenticated && !inAuthGroup) {
       // Redirect to the sign-in page.
       router.replace("/(auth)/login");
-    } else if (isAuthenticated && inAuthGroup) {
-      // Redirect away from the sign-in page.
-      router.replace("/(app)" as any);
+    } else if (isAuthenticated) {
+      if (!hasSelectedCategory && !inOnboardingGroup) {
+        router.replace("/(onboarding)/category-select" as any);
+      } else if (hasSelectedCategory && (inAuthGroup || inOnboardingGroup)) {
+        router.replace("/(app)" as any);
+      }
     }
-  }, [isAuthenticated, isReady, segments]);
+  }, [isAuthenticated, hasSelectedCategory, isReady, segments, rootNavigationState?.key]);
 
   if (!isReady) {
     return (
