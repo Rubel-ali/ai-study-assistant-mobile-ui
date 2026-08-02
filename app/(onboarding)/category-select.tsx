@@ -7,6 +7,8 @@ const CATEGORIES = [
   { id: 'hsc', label: 'HSC' },
   { id: 'ssc', label: 'SSC' },
   { id: 'admission', label: 'Admission' },
+  { id: 'national_university', label: 'National University' },
+  { id: 'job_preparation', label: 'Job Preparation' },
 ];
 
 const STREAMS = {
@@ -24,6 +26,17 @@ const STREAMS = {
     { id: 'engineering', label: 'Engineering' },
     { id: 'medical', label: 'Medical' },
     { id: 'university', label: 'University' },
+  ],
+  national_university: [
+    { id: 'honours', label: 'Honours' },
+    { id: 'degree', label: 'Degree (Pass)' },
+    { id: 'masters', label: 'Masters' },
+  ],
+  job_preparation: [
+    { id: 'bcs', label: 'BCS' },
+    { id: 'bank', label: 'Bank' },
+    { id: 'primary', label: 'Primary Teacher' },
+    { id: 'others', label: 'Other Govt Jobs' },
   ],
 };
 

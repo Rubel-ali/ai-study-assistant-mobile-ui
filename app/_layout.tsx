@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Slot, useRouter, useSegments, useRootNavigationState } from "expo-router";
+import { Slot, useRouter, useSegments, useRootNavigationState, useGlobalSearchParams } from "expo-router";
 import { Provider } from "react-redux";
 import { store } from "../src/redux/store";
 import { useAppDispatch, useAppSelector } from "../src/redux/hooks";
 import { setCredentials } from "../src/redux/authSlice";
-import { getToken } from "../src/services/storage";
+import { getToken, saveToken } from "../src/services/storage";
 import { View, ActivityIndicator } from "react-native";
 import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
 import "../global.css";
@@ -23,6 +23,36 @@ function RootNavigation() {
   const hasSelectedCategory = useAppSelector((state) => state.preferences.hasSelectedCategory);
   const [isReady, setIsReady] = useState(false);
   const rootNavigationState = useRootNavigationState();
+  
+  // Handle deep links for social auth
+  const params = useGlobalSearchParams();
+  const [isProcessingToken, setIsProcessingToken] = useState(false);
+
+  useEffect(() => {
+    if (params?.token && !isAuthenticated) {
+      setIsProcessingToken(true);
+      const token = params.token as string;
+      const userId = (params.userId as string) || 'unknown';
+      
+      const processToken = async () => {
+        try {
+          dispatch(
+            setCredentials({
+              user: { id: userId, name: 'Student', email: '' }, 
+              token: token,
+            })
+          );
+          await saveToken(token);
+        } catch (error) {
+          console.error("Failed to process token from URL", error);
+        } finally {
+          setIsProcessingToken(false);
+        }
+      };
+      
+      processToken();
+    }
+  }, [params?.token, isAuthenticated, dispatch]);
 
   useEffect(() => {
     let isMounted = true;
@@ -53,7 +83,7 @@ function RootNavigation() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!isReady || !rootNavigationState?.key) return;
+    if (!isReady || !rootNavigationState?.key || isProcessingToken) return;
 
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboardingGroup = (segments[0] as string) === "(onboarding)";
@@ -68,9 +98,9 @@ function RootNavigation() {
         router.replace("/(app)" as any);
       }
     }
-  }, [isAuthenticated, hasSelectedCategory, isReady, segments, rootNavigationState?.key]);
+  }, [isAuthenticated, hasSelectedCategory, isReady, segments, rootNavigationState?.key, isProcessingToken]);
 
-  if (!isReady) {
+  if (!isReady || isProcessingToken) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0f172a" }}>
         <ActivityIndicator size="large" color="#818cf8" />
