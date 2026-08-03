@@ -15,8 +15,10 @@ export default function SubjectsScreen() {
   });
 
   const handleSubjectPress = (id: string, name: string) => {
-    // Navigate to topic or subject details
-    console.log(`Navigate to Subject details: ${id} - ${name}`);
+    router.push({
+      pathname: '/(app)/topics/[subjectId]',
+      params: { subjectId: id, subjectName: name },
+    });
   };
 
   const renderContent = () => {

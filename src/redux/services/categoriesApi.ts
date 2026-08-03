@@ -21,6 +21,14 @@ export interface Subject {
   iconName?: string;
 }
 
+export interface Topic {
+  id: string;
+  subjectId: string;
+  name: string;
+  description?: string;
+  iconName?: string;
+}
+
 export const categoriesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getCategories: builder.query<Category[], void>({
@@ -53,6 +61,16 @@ export const categoriesApi = apiSlice.injectEndpoints({
             ]
           : [{ type: 'Hierarchy', id: `LIST_SUBJECTS_${arg}` }],
     }),
+    getTopics: builder.query<Topic[], string>({
+      query: (subjectId) => `/topics?subjectId=${subjectId}`,
+      providesTags: (result, error, arg) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Hierarchy' as const, id })),
+              { type: 'Hierarchy', id: `LIST_TOPICS_${arg}` },
+            ]
+          : [{ type: 'Hierarchy', id: `LIST_TOPICS_${arg}` }],
+    }),
   }),
   overrideExisting: false,
 });
@@ -61,4 +79,5 @@ export const {
   useGetCategoriesQuery,
   useGetSubCategoriesQuery,
   useGetSubjectsQuery,
+  useGetTopicsQuery,
 } = categoriesApi;
